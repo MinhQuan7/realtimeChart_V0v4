@@ -103,7 +103,7 @@
             const data = [];
             const time = (new Date().getTime());
 
-            for (let i = -19; i <= 0; i += 1) {
+            for (let i = -3599; i <= 0; i += 1) { // Lưu dữ liệu trong khoảng 1 giờ (3600 giây)
                 data.push({
                     x: time + i * 1000,
                     y: 0 // Giá trị mặc định cho dữ liệu ban đầu
@@ -200,7 +200,15 @@
             },
 
             exporting: {
-                enabled: false
+                enabled: true,
+                buttons: {
+                    contextButton: {
+                        menuItems: ['downloadCSV', 'downloadXLS']
+                    }
+                },
+                csv: {
+                    dateFormat: '%Y-%m-%d %H:%M:%S'
+                }
             },
 
             series: [
@@ -218,8 +226,11 @@
                         },
                         stops: [
                             [0, Highcharts.getOptions().colors[6]],
-                            [1, Highcharts.Color(Highcharts.getOptions().colors[6]).setOpacity(0).get('rgba')]
+                            [1, Highcharts.color(Highcharts.getOptions().colors[6]).setOpacity(0).get('rgba')]
                         ]
+                    },
+                    marker: {
+                        radius: 4
                     }
                 }
             ]
