@@ -106,7 +106,7 @@
             for (let i = -19; i <= 0; i += 1) {
                 data.push({
                     x: time + i * 1000,
-                    y: heartbeatValue // Giá trị mặc định cho dữ liệu ban đầu
+                    y: 0 // Giá trị mặc định cho dữ liệu ban đầu
                 });
             }
             return data;
@@ -201,27 +201,15 @@
 
             exporting: {
                 enabled: false
-            },  
+            },
 
             series: [
                 {
                     name: 'Heartbeats',
                     lineWidth: 2,
                     color: Highcharts.getOptions().colors[6],
-                    data,
-                    fillColor: {
-                        linearGradient: {
-                            x1: 0,
-                            y1: 0,
-                            x2: 0,
-                            y2: 1
-                        },
-                        stops: [
-                            [0, Highcharts.getOptions().colors[6]],
-                            [1, Highcharts.Color(Highcharts.getOptions().colors[6]).setOpacity(0).get('rgba')]
-                        ]
-                    }
-                }
+                    data
+                } 
             ]
         });
     </script>
