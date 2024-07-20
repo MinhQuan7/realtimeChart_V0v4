@@ -87,6 +87,7 @@
         <p class="highcharts-description">
             Chart showing heartbeats data updating every second.
         </p>
+        <button id="exportButton">Export to Excel</button>
     </figure>
 
     <input type="checkbox" id="HeartBeat"></input>
@@ -95,6 +96,7 @@
         const eraWidget = new EraWidget();
         let config = null;
         let heartbeatValue = 0; // Khởi tạo giá trị nhịp tim mặc định
+        const dataBuffer = [];
 
         eraWidget.onConfiguration((configuration) => {
             config = configuration.realtime_configs[0];
@@ -118,6 +120,13 @@
                     y = heartbeatValue; // Giá trị nhịp tim thực tế
 
                 series.addPoint([x, y], true, true);
+                dataBuffer.push([x, y]);
+
+                // Giới hạn bộ đệm dữ liệu trong 30 phút (1800 giây)
+                const thirtyMinutesAgo = x - 1800 * 1000;
+                while (dataBuffer.length > 0 && dataBuffer[0][0] < thirtyMinutesAgo) {
+                    dataBuffer.shift();
+                }
             }, 1000);
         };
 
@@ -134,82 +143,6 @@
             }
             return data;
         }());
-
-        Highcharts.addEvent(Highcharts.Series, 'addPoint', e => {
-            const point = e.point,
-                series = e.target;
-
-            if (!series.pulse) {
-                series.pulse = series.chart.renderer.circle()
-                    .add(series.markerGroup);
-            }
-
-            setTimeout(() => {
-                series.pulse
-                    .attr({
-                        x: series.xAxis.toPixels(point.x, true),
-                        y: series.yAxis.toPixels(point.y, true),
-                        r: series.options.marker.radius,
-                        opacity: 1,
-                        fill: series.color
-                    })
-                    .animate({
-                        r: 20,
-                        opacity: 0
-                    }, {
-                        duration: 1000
-                    });
-            }, 1);
-        });
-
-        Highcharts.setOptions({
-            chart: {
-                type: 'area',
-                spacingTop: 20,
-                spacingBottom: 20
-            },
-            title: {
-                align: 'left',
-                margin: 0,
-                x: 30
-            },
-            credits: {
-                enabled: false
-            },
-            legend: {
-                enabled: false
-            },
-            xAxis: {
-                crosshair: true,
-                labels: {
-                    format: '{value} km'
-                },
-                accessibility: {
-                    description: 'Kilometers',
-                    rangeDescription: '0km to 6.5km'
-                }
-            },
-            yAxis: {
-                title: {
-                    text: null
-                }
-            },
-            tooltip: {
-                positioner: function () {
-                    return {
-                        // right aligned
-                        x: this.chart.chartWidth - this.label.width,
-                        y: 10 // align to title
-                    };
-                },
-                borderWidth: 0,
-                backgroundColor: 'none',
-                pointFormat: '{point.y}',
-                headerFormat: '',
-                shadow: false,
-                valueDecimals: 0
-            }
-        });
 
         Highcharts.chart('container', {
             chart: {
@@ -296,6 +229,19 @@
                 } 
             ]
         });
+
+        document.getElementById('exportButton').addEventListener('click', function () {
+            const ws = XLSX.utils.json_to_sheet(dataBuffer.map(point => ({
+                Time: (new Date(point[0])).toLocaleString(),
+                Heartbeat: point[1]
+            })));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Heartbeats');
+            XLSX.writeFile(wb, 'heartbeat_data.xlsx');
+        });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </body>
 </html>
+``
